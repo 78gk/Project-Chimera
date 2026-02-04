@@ -1,10 +1,10 @@
 # Project Chimera: Day 1 Submission Report
 
-**Submitted By:** Forward Deployed Engineer (FDE) Trainee  
+**Submitted By:** Forward Deployed Engineer (FDE) Trainee -Kirubel Tewodros 
 **Submission Date:** February 4, 2026  
 **Challenge:** Project Chimera - The Agentic Infrastructure Challenge  
 **Role:** Strategist & Architect
-
+**Github repository** https://github.com/78gk/Project-Chimera.git
 ---
 
 ## Executive Summary
