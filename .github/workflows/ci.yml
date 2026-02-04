@@ -1,0 +1,91 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies
+      run: |
+        uv pip install --system -e ".[dev]"
+    
+    - name: Lint with ruff
+      run: |
+        ruff check src/ tests/
+    
+    - name: Format check with black
+      run: |
+        black --check src/ tests/ skills/
+    
+    - name: Type check with mypy
+      run: |
+        mypy src/ || true  # Non-blocking for now
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v -m unit --cov=src --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  spec-validation:
+    name: Spec-Code Alignment Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Validate specs exist
+      run: |
+        test -f specs/_meta.md || exit 1
+        test -f specs/functional.md || exit 1
+        test -f specs/technical.md || exit 1
+        echo "✅ All spec files present"
+    
+    - name: Check for spec-code divergence
+      run: |
+        echo "⚠️  Manual spec validation required"
+        echo "TODO: Implement automated spec-code alignment checker"
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run security scan
+      run: |
+        pip install bandit
+        bandit -r src/ -f json -o bandit-report.json || true
+    
+    - name: Check for secrets
+      run: |
+        pip install detect-secrets
+        detect-secrets scan --baseline .secrets.baseline || true
