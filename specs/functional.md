@@ -438,13 +438,195 @@ def test_agent_generates_post():
 
 ---
 
+## Epic 8: Agent Memory & Learning
+
+### Story 8.1: Agent Retrieves Relevant Memories
+**As a** Chimera Agent  
+**I want to** search my past interactions before generating content  
+**So that** I maintain consistency and learn from successful patterns
+
+**Acceptance Criteria:**
+- [ ] Worker calls `search_memory()` MCP Tool with semantic query
+- [ ] Weaviate returns top 5 most relevant past interactions
+- [ ] Memories filtered by time window (default: last 30 days)
+- [ ] Memory context injected into LLM prompt for content generation
+- [ ] System logs which memories were used for each task (auditability)
+
+**Performance:**
+- Semantic search latency < 200ms (p95)
+
+---
+
+### Story 8.2: Agent Stores Successful Patterns
+**As a** Chimera Agent  
+**I want to** automatically store high-engagement content patterns  
+**So that** I can replicate successful strategies
+
+**Acceptance Criteria:**
+- [ ] After 24 hours, system analyzes post engagement metrics
+- [ ] Posts with engagement > 2x average marked as "high_performer"
+- [ ] High-performer content stored with metadata: topic, style, tone, time_of_day
+- [ ] Planner prioritizes similar content types in future task planning
+- [ ] User can view "Top Patterns" dashboard for each agent
+
+---
+
+## Epic 9: Multi-Agent Coordination (Advanced)
+
+### Story 9.1: Orchestrator Launches Fleet Campaign
+**As a** Network Orchestrator  
+**I want to** launch a campaign across multiple agents simultaneously  
+**So that** I can coordinate brand activations at scale
+
+**Acceptance Criteria:**
+- [ ] User selects multiple agents (e.g., 50 fashion agents)
+- [ ] User enters campaign goal: "Promote sustainable fashion week"
+- [ ] System generates coordinated task DAG across all agents
+- [ ] Tasks distributed to avoid content duplication
+- [ ] User can preview task distribution before execution
+- [ ] Execution starts only after user approval
+
+**Example Distribution:**
+- 10 agents focus on trend research
+- 30 agents create unique posts (different angles)
+- 10 agents handle community engagement
+
+---
+
+### Story 9.2: Agents Avoid Duplicate Content
+**As a** Chimera Agent  
+**I want to** check if similar content already posted by fleet  
+**So that** our network doesn't spam audiences with repetitive posts
+
+**Acceptance Criteria:**
+- [ ] Before posting, Worker queries Redis cache for recent fleet posts (last 4 hours)
+- [ ] System computes semantic similarity between draft and recent posts
+- [ ] If similarity > 0.85 → Task rejected, Planner generates alternative angle
+- [ ] If similarity 0.70-0.85 → Warning shown in HITL review
+- [ ] Deduplication logic configurable per campaign
+
+---
+
+## Epic 10: Error Handling & Resilience
+
+### Story 10.1: Worker Retries Failed Tasks
+**As a** Worker Service  
+**I want to** automatically retry transient failures  
+**So that** temporary issues don't block agent operations
+
+**Acceptance Criteria:**
+- [ ] Worker detects failure types: network_timeout, api_rate_limit, insufficient_funds
+- [ ] Retry logic: Exponential backoff (1s, 2s, 4s, 8s)
+- [ ] Max 3 retries for transient errors
+- [ ] Persistent errors move task to Dead Letter Queue (DLQ)
+- [ ] DLQ tasks trigger developer alert
+
+**Retry Strategies:**
+- `api_rate_limit` → Wait 15 minutes, then retry
+- `network_timeout` → Immediate retry with backoff
+- `insufficient_funds` → Pause agent, alert orchestrator
+
+---
+
+### Story 10.2: System Recovers from MCP Server Outage
+**As a** System Administrator  
+**I want to** gracefully handle MCP server failures  
+**So that** agents pause instead of crashing
+
+**Acceptance Criteria:**
+- [ ] Worker detects MCP server unreachable (health check)
+- [ ] Agent status automatically changes to "degraded"
+- [ ] Tasks requiring unavailable MCP tools queued for later
+- [ ] System sends alert: "Twitter MCP server down - 25 agents affected"
+- [ ] When MCP server recovers, agents auto-resume operations
+
+---
+
+## Traceability Matrix
+
+This section maps functional requirements to technical implementations and test cases.
+
+| Epic | Story | Technical Component | Test Suite | Priority |
+|------|-------|---------------------|------------|----------|
+| 1.1 | Create New Agent | `src/planner/agent_manager.py` | `tests/test_agent_lifecycle.py` | HIGH |
+| 1.2 | Configure Budget | `src/judge/cfo_judge.py` | `tests/test_budget_enforcement.py` | HIGH |
+| 2.2 | Generate Post | `src/worker/content_generator.py` | `tests/test_content_generation.py` | HIGH |
+| 2.3 | HITL Review | `src/dashboard/review_queue.py` | `tests/test_hitl_workflow.py` | HIGH |
+| 4.2 | Pay for Service | `src/worker/payment_executor.py` | `tests/test_financial_autonomy.py` | HIGH |
+| 7.1 | Instagram Support | `skills/mcp-server-instagram/` | `tests/test_instagram_integration.py` | MEDIUM |
+| 8.1 | Retrieve Memories | `src/worker/memory_retrieval.py` | `tests/test_semantic_memory.py` | HIGH |
+| 9.1 | Fleet Campaign | `src/planner/fleet_coordinator.py` | `tests/test_multi_agent.py` | MEDIUM |
+
+---
+
+## Compliance & Regulatory Requirements
+
+### CR-1: AI Disclosure
+- All agent profiles MUST include "AI-powered" in bio
+- Agents MUST truthfully respond to "Are you AI?" questions
+- Platform-specific disclosure mechanisms used where available (e.g., Twitter's "Automated Account" label)
+
+### CR-2: Data Protection (GDPR/CCPA)
+- User interactions stored with consent
+- Data retention: 90 days for interaction logs, 365 days for financial records
+- Right to be forgotten: Users can request deletion of their interaction history
+
+### CR-3: Financial Compliance
+- All transactions logged immutably (PostgreSQL + blockchain)
+- Transaction history available for audit (7 years retention)
+- KYC/AML compliance for orchestrator accounts (via payment processor)
+
+### CR-4: Content Safety
+- Prohibited content types: Hate speech, violence, sexual content, misinformation
+- Judge service includes content safety filter (Perspective API integration)
+- Human review required for content flagged by safety filter
+
+---
+
+## Accessibility Requirements
+
+### ACC-1: Dashboard Accessibility
+- WCAG 2.1 Level AA compliance
+- Keyboard navigation for all actions
+- Screen reader compatible
+- Color contrast ratio ≥ 4.5:1
+
+### ACC-2: Alert Accessibility
+- Multiple notification channels: Visual (dashboard), Audio (sound), Email, Slack
+- Configurable alert preferences per user
+
+---
+
+## Internationalization (i18n)
+
+### I18N-1: Multi-Language Support
+- Dashboard UI available in: English, Spanish, French, Amharic
+- Agent personas can operate in any language (LLM-dependent)
+- Currency display localized (USD, EUR, ETH, USDC)
+
+### I18N-2: Regional Compliance
+- Regional content filtering (GDPR for EU, CCPA for California)
+- Timezone-aware scheduling and reporting
+- Regional API endpoints for reduced latency
+
+---
+
 ## Document Status
 
-**Status:** ✅ Draft Complete - Ready for Review  
+**Status:** ✅ Complete - Ready for Implementation  
+**Version:** 2.0  
+**Last Updated:** February 5, 2026
+
 **Next Steps:** 
 - [ ] Review with Product Owner
 - [ ] Prioritize stories for MVP (Week 1-8)
-- [ ] Convert acceptance criteria to automated tests
+- [ ] Convert acceptance criteria to automated tests (TDD approach)
+- [ ] Create wireframes for HITL dashboard
+- [ ] Define API rate limits and quotas
+
+**Changelog:**
+- v2.0 (2026-02-05): Added Epics 8-10, traceability matrix, compliance requirements
+- v1.0 (2026-02-04): Initial draft with Epics 1-7
 
 ---
 
