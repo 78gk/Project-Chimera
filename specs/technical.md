@@ -4,6 +4,10 @@
 **Date:** February 4, 2026  
 **Status:** Draft  
 
+
+Note on examples: All code blocks in this document are illustrative and non-binding unless a section explicitly marks them as normative requirements.
+
+
 ---
 
 ## 1. System Architecture Overview

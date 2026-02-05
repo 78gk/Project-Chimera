@@ -177,6 +177,7 @@ Support three revenue streams:
 
 ### Flexibility Allowed
 - **Social Platforms:** Twitter priority, Instagram/TikTok/Threads future
+   MVP platform scope is Twitter only. Instagram, TikTok, and Threads are roadmap platforms (see functional spec future epic).
 - **Image Generation:** Ideogram preferred, Midjourney/Runway alternatives
 - **Video Generation:** Runway/Luma (based on cost/quality trade-offs)
 - **CI/CD:** GitHub Actions preferred, alternatives acceptable
@@ -198,6 +199,12 @@ Supporting specifications define the "how":
 ## Change Management
 
 ### Specification Updates
+#### list:
+  Specification Ratification
+
+- Ratification authority: Engineering Lead + Product Owner + Security Architect.
+- Ratification is recorded by (1) checking the approvals in “Document Status” in this file and (2) a Git commit that includes spec-ratified: <version> in the message.
+
 - All spec changes require Git commit with rationale
 - Breaking changes require version bump (e.g., 1.0 → 2.0)
 - AI assistants must check spec version before generating code
@@ -208,6 +215,14 @@ Supporting specifications define the "how":
 - Human review required for any spec-code divergence
 
 ---
+
+## Deferred Decisions
+The following policy constraints are intentionally deferred to avoid premature optimization during early prototyping and to keep MVP scope focused. These items must be defined before pre-production readiness.
+
+Rate limits and quotas — Deferred. Must be specified by Day 3 and validated before any multi-agent load testing.
+Observability SLOs/SLIs — Deferred. Must be specified by Day 3 and finalized before pre-production.
+OCC conflict handling policy — Deferred. Must be specified by Day 3 and finalized before any concurrent-agent deployment.
+Interim rule: Until these decisions are formally specified, AI agents must not infer or assume values, thresholds, or behaviors related to these topics. All outputs should explicitly mark these as “deferred” if encountered.
 
 ## Glossary
 

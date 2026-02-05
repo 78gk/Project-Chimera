@@ -9,6 +9,8 @@
 ## Overview
 
 This document defines the functional requirements for Project Chimera from the perspective of **user stories** and **acceptance criteria**. It describes WHAT the system must do, not HOW it does it.
+MVP platform scope is Twitter only. Instagram, TikTok, and Threads are explicitly roadmap items (see Epic 7).
+
 
 ---
 
