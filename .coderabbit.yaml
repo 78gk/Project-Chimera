@@ -1,0 +1,279 @@
+# CodeRabbit AI Review Configuration
+# Day 3 Task 3.3: AI Governance & Review Policy
+# When an agent pushes code, who reviews it? CodeRabbit does!
+
+# Configuration version
+version: 1.0
+
+# Review settings
+reviews:
+  # Enable automatic reviews on all PRs
+  auto_review: true
+  
+  # Review depth
+  max_files_per_review: 50
+  max_lines_per_file: 1000
+  
+  # Review triggers
+  triggers:
+    - pull_request
+    - push_to_main
+  
+  # Exclude patterns
+  exclude:
+    - "**/*.md"  # Documentation changes (low risk)
+    - "**/test_*.py"  # Test files (covered by CI)
+    - "**/*.yaml"  # Config files
+    - "**/*.json"  # Data files
+
+# AI Review Focus Areas (Day 3 Task 3.3 Requirement)
+focus_areas:
+  # 1. Spec Alignment (CRITICAL)
+  spec_alignment:
+    enabled: true
+    severity: critical
+    description: "Ensure all code changes align with specifications in specs/"
+    rules:
+      - Check if new code references specifications
+      - Verify API contracts match specs/technical.md
+      - Validate data models match specs/technical.md schemas
+      - Ensure MCP tools follow specs/openclaw_integration.md
+    prompt: |
+      Review this code for specification alignment:
+      1. Does this code implement features documented in specs/?
+      2. Do API endpoints match specs/technical.md?
+      3. Do data models match database schemas in specs/technical.md?
+      4. Are MCP tool definitions consistent with skills/README.md?
+      5. Flag any code that introduces features NOT in specifications.
+  
+  # 2. Security Vulnerabilities (CRITICAL)
+  security:
+    enabled: true
+    severity: critical
+    description: "Identify security vulnerabilities and unsafe practices"
+    rules:
+      - Check for SQL injection vulnerabilities
+      - Detect hardcoded secrets and API keys
+      - Flag unsafe deserialization
+      - Identify command injection risks
+      - Validate input sanitization
+      - Check for insecure cryptography
+    prompt: |
+      Perform security review:
+      1. Are there any hardcoded credentials or API keys?
+      2. Is user input properly validated and sanitized?
+      3. Are database queries parameterized (no SQL injection)?
+      4. Are external commands properly escaped?
+      5. Is sensitive data encrypted at rest and in transit?
+      6. Are authentication and authorization properly implemented?
+  
+  # 3. Spec-First Development Enforcement
+  spec_first:
+    enabled: true
+    severity: high
+    description: "Enforce spec-first development (context.md constraint)"
+    rules:
+      - Verify specs/ updated before implementation
+      - Check if tests exist before implementation (TDD)
+      - Ensure CLAUDE.md prime directive followed
+    prompt: |
+      Enforce spec-first development:
+      1. Were specifications updated BEFORE this implementation?
+      2. Do failing tests exist for this feature (TDD)?
+      3. Is there a traceability link to specs in commit message?
+      4. Does the code reference the specification it implements?
+  
+  # 4. Architecture Compliance
+  architecture:
+    enabled: true
+    severity: high
+    description: "Ensure FastRender Hierarchical Swarm pattern followed"
+    rules:
+      - Verify Planner-Worker-Judge separation
+      - Check MCP integration (no direct API calls)
+      - Validate database choice (PostgreSQL/Weaviate/Redis)
+      - Ensure stateless worker design
+    prompt: |
+      Review architecture compliance:
+      1. Does this follow Planner-Worker-Judge pattern?
+      2. Are external services accessed via MCP (not direct API calls)?
+      3. Are workers stateless (no shared state)?
+      4. Is the correct database used (PostgreSQL/Weaviate/Redis)?
+      5. Does this maintain context.md architecture decisions?
+  
+  # 5. Performance & Scalability
+  performance:
+    enabled: true
+    severity: medium
+    description: "Check for performance issues (context.md: <10s worker latency)"
+    rules:
+      - Identify N+1 query problems
+      - Check for missing database indexes
+      - Flag synchronous calls in async code
+      - Detect memory leaks
+    prompt: |
+      Review performance:
+      1. Are there any N+1 database query patterns?
+      2. Are expensive operations cached appropriately?
+      3. Is async/await used correctly (no blocking calls)?
+      4. Will this meet <10s worker latency target (context.md)?
+  
+  # 6. Error Handling
+  error_handling:
+    enabled: true
+    severity: medium
+    description: "Validate error handling and retry logic"
+    rules:
+      - Check for proper exception handling
+      - Verify retry logic for transient failures
+      - Ensure errors are logged with context
+    prompt: |
+      Review error handling:
+      1. Are all exceptions properly caught and handled?
+      2. Is retry logic implemented for transient failures?
+      3. Are errors logged with sufficient context (structlog)?
+      4. Do fatal errors vs retryable errors have different paths?
+  
+  # 7. Test Coverage
+  test_coverage:
+    enabled: true
+    severity: medium
+    description: "Ensure adequate test coverage"
+    rules:
+      - Verify tests exist for new code
+      - Check test quality (not just existence)
+      - Validate edge cases covered
+    prompt: |
+      Review test coverage:
+      1. Are there tests for this new code?
+      2. Do tests cover happy path AND error cases?
+      3. Are edge cases tested?
+      4. Do tests reference the spec they validate (traceability)?
+  
+  # 8. HITL Compliance
+  hitl_compliance:
+    enabled: true
+    severity: high
+    description: "Validate confidence-based routing (context.md HITL strategy)"
+    rules:
+      - Check confidence thresholds (>0.90, 0.70-0.90, <0.70)
+      - Verify Judge validation logic
+      - Ensure auto-approval rate tracking
+    prompt: |
+      Review HITL compliance:
+      1. Does Judge use correct confidence thresholds (0.90, 0.70)?
+      2. Are high-confidence actions auto-approved?
+      3. Are medium-confidence actions routed to human review?
+      4. Are low-confidence actions auto-rejected?
+      5. Is auto-approval rate tracked (target: >90%)?
+
+# Code style preferences
+code_style:
+  language: python
+  formatter: black
+  line_length: 88
+  linter: ruff
+  type_checker: mypy
+
+# Comment settings
+comments:
+  # When to add comments
+  add_comments_when:
+    - spec_alignment_issue_found
+    - security_vulnerability_detected
+    - architecture_violation_detected
+    - performance_concern_identified
+  
+  # Comment tone
+  tone: constructive
+  
+  # Comment format
+  format: |
+    ## 🤖 CodeRabbit AI Review
+    
+    **Issue**: {issue_type}
+    **Severity**: {severity}
+    
+    {description}
+    
+    **Recommendation**: {recommendation}
+    
+    **Reference**: {spec_reference}
+
+# Auto-fix settings
+auto_fix:
+  enabled: false  # Disabled for safety - human approval required
+  
+# Notification settings
+notifications:
+  slack:
+    enabled: false
+  email:
+    enabled: true
+    recipients:
+      - fde@chimera.dev
+
+# Learning mode
+learning:
+  enabled: true
+  feedback_collection: true
+  improvement_tracking: true
+
+# Project-specific context
+project_context:
+  name: "Project Chimera"
+  description: "Autonomous AI Influencer Network - FastRender Hierarchical Swarm"
+  
+  # Key documents to reference
+  key_documents:
+    - path: "context.md"
+      description: "Single source of truth - architecture decisions, constraints"
+    - path: "CLAUDE.md"
+      description: "AI agent behavior rules - prime directive for spec-first"
+    - path: "specs/technical.md"
+      description: "Technical specifications - API contracts, DB schemas"
+    - path: "specs/functional.md"
+      description: "Functional specifications - user stories, acceptance criteria"
+    - path: "tests/README_TDD.md"
+      description: "TDD strategy - test-first development approach"
+  
+  # Critical constraints from context.md
+  constraints:
+    - "Cost Target: < $15/agent/month"
+    - "Auto-Approval Rate: > 90%"
+    - "Worker Task Latency: < 10 seconds (p95)"
+    - "System Uptime: 99.5%"
+    - "Spec-First Development: No implementation without specifications"
+    - "MCP Integration: All external tools must use MCP standard"
+  
+  # Architecture patterns
+  patterns:
+    - "FastRender Hierarchical Swarm (Planner-Worker-Judge)"
+    - "Model Context Protocol (MCP) for integration"
+    - "Polyglot Persistence (PostgreSQL + Weaviate + Redis)"
+    - "Confidence-based HITL routing (>0.90, 0.70-0.90, <0.70)"
+    - "Test-Driven Development (TDD)"
+    - "Spec-Driven Development (SDD)"
+
+# Review summary
+summary:
+  enabled: true
+  format: |
+    ## 📊 CodeRabbit Review Summary
+    
+    - ✅ Spec Alignment: {spec_alignment_status}
+    - 🔒 Security: {security_status}
+    - 🏗️ Architecture: {architecture_status}
+    - ⚡ Performance: {performance_status}
+    - 🧪 Test Coverage: {test_coverage_status}
+    
+    **Overall Assessment**: {overall_assessment}
+    
+    **Recommendation**: {recommendation}
+
+# Meta
+meta:
+  version: "1.0.0"
+  last_updated: "2026-02-05"
+  task: "Day 3 Task 3.3 - AI Governance"
+  purpose: "Automated AI code review for spec alignment and security"
