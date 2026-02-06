@@ -185,17 +185,25 @@ dev:
 # Docker commands
 docker-build:
 	@echo "Building Docker images..."
-	docker build -t chimera:latest .
-	@echo "Docker build complete"
+	@docker build -t chimera:latest .
+	@docker build --target testing -t chimera:test .
+	@docker build --target development -t chimera:dev .
+	@echo "✅ Docker images built: chimera:latest, chimera:test, chimera:dev"
+
+docker-test:
+	@echo "Running tests in Docker (Task 3.2 requirement)..."
+	@docker build --target testing -t chimera:test .
+	@docker run --rm chimera:test
+	@echo "✅ Docker test complete"
 
 docker-up:
 	@echo "Starting Docker services..."
-	docker-compose up -d
+	@docker-compose up -d
 	@echo "Services started"
 
 docker-down:
 	@echo "Stopping Docker services..."
-	docker-compose down
+	@docker-compose down
 	@echo "Services stopped"
 
 # Git helpers
@@ -212,3 +220,35 @@ pre-commit:
 	@echo "Setting up pre-commit hooks..."
 	pre-commit install
 	@echo "Pre-commit hooks installed"
+
+# Day 3 Demo - Run all deliverables (Task 3.1 + 3.2)
+day3-demo:
+	@echo "=========================================="
+	@echo "Day 3 Deliverables Demo"
+	@echo "=========================================="
+	@echo ""
+	@echo "Task 3.1: Test-Driven Development ✅"
+	@echo "--------------------"
+	@echo "Demonstrating failing tests (TDD approach)..."
+	@echo ""
+	@$(MAKE) test-local || true
+	@echo ""
+	@echo "Task 3.2: Containerization & Automation ✅"
+	@echo "--------------------"
+	@echo "1. Running 'make setup'..."
+	@$(MAKE) setup
+	@echo ""
+	@echo "2. Running 'make test' (Docker)..."
+	@$(MAKE) test
+	@echo ""
+	@echo "3. Running 'make spec-check'..."
+	@$(MAKE) spec-check
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ Day 3 Demo Complete"
+	@echo "=========================================="
+	@echo ""
+	@echo "Summary:"
+	@echo "  ✅ Task 3.1: 5 test files, 115+ test cases (failing = success)"
+	@echo "  ✅ Task 3.2: Dockerfile enhanced, Makefile with 3 required targets"
+	@echo "  ✅ Next: Task 3.3 - CI/CD & AI Governance"
